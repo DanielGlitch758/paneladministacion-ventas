@@ -2,10 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Login Panel</title>
+<title>Panel | Acceso</title>
+
 <style>
 body{
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background:#0a0e1a;
   color:white;
   display:flex;
@@ -16,22 +17,54 @@ body{
 
 .box{
   background:#151b2e;
-  padding:30px;
-  border-radius:10px;
-  width:300px;
+  padding:35px;
+  border-radius:12px;
+  width:320px;
+  box-shadow:0 0 25px rgba(0,0,0,.6);
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
 }
 
 input,button{
   width:100%;
-  margin:10px 0;
+  margin:8px 0;
   padding:10px;
+  border-radius:6px;
+  border:none;
+}
+
+input{
+  background:#0f172a;
+  color:white;
 }
 
 button{
   background:#6366f1;
   color:white;
-  border:none;
   cursor:pointer;
+  font-weight:600;
+}
+
+button:hover{
+  background:#4f46e5;
+}
+
+.secondary{
+  background:#334155;
+}
+
+.secondary:hover{
+  background:#1e293b;
+}
+
+#msg{
+  text-align:center;
+  margin-top:10px;
+  color:#f87171;
+  font-size:.9rem;
 }
 </style>
 </head>
@@ -39,23 +72,38 @@ button{
 <body>
 
 <div class="box">
-  <h2>Panel de Administración</h2>
+
+  <h2>Panel de Ventas</h2>
 
   <input id="email" type="email" placeholder="Correo">
+
   <input id="pass" type="password" placeholder="Contraseña">
 
   <button onclick="login()">Entrar</button>
 
+  <button class="secondary" onclick="register()">
+    Registrarme
+  </button>
+
   <p id="msg"></p>
+
 </div>
 
 
 <script type="module">
 
+/* ================= FIREBASE ================= */
+
 import { initializeApp } from
 "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 
-import { getAuth, signInWithEmailAndPassword } from
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence
+} from
 "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
 
@@ -73,11 +121,18 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 
+/* Guardar sesión */
+
+setPersistence(auth, browserLocalPersistence);
+
+
+/* ================= FUNCIONES ================= */
+
+
 window.login = async function(){
 
-  const email = document.getElementById("email").value;
-  const pass  = document.getElementById("pass").value;
-  const msg   = document.getElementById("msg");
+  const email = emailInput();
+  const pass  = passInput();
 
   try{
 
@@ -87,14 +142,85 @@ window.login = async function(){
 
   }catch(e){
 
-    msg.textContent="Datos incorrectos";
+    showError(e);
 
   }
 
 };
 
+
+window.register = async function(){
+
+  const email = emailInput();
+  const pass  = passInput();
+
+  if(pass.length < 6){
+    showMsg("Mínimo 6 caracteres");
+    return;
+  }
+
+  try{
+
+    await createUserWithEmailAndPassword(auth,email,pass);
+
+    showMsg("Cuenta creada. Entrando...","ok");
+
+    setTimeout(()=>{
+      window.location.href="index.html";
+    },1000);
+
+  }catch(e){
+
+    showError(e);
+
+  }
+
+};
+
+
+/* ================= HELPERS ================= */
+
+
+function emailInput(){
+  return document.getElementById("email").value.trim();
+}
+
+function passInput(){
+  return document.getElementById("pass").value.trim();
+}
+
+
+function showMsg(t,type="err"){
+
+  const msg = document.getElementById("msg");
+
+  msg.style.color = type==="ok" ? "#4ade80" : "#f87171";
+
+  msg.textContent = t;
+
+}
+
+
+function showError(e){
+
+  if(e.code==="auth/email-already-in-use")
+    showMsg("Este correo ya existe");
+
+  else if(e.code==="auth/wrong-password")
+    showMsg("Contraseña incorrecta");
+
+  else if(e.code==="auth/user-not-found")
+    showMsg("Usuario no existe");
+
+  else if(e.code==="auth/invalid-email")
+    showMsg("Correo inválido");
+
+  else
+    showMsg("Error: "+e.code);
+
+}
+
 </script>
 
 </body>
 </html>
-
