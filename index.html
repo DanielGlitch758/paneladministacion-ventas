@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión - Suscripciones</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #14b8a6;
+            --secondary-dark: #0f766e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-main: #0a0e1a;
+            --bg-card: #151b2e;
+            --bg-hover: #1e2741;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border: #1e293b;
+            --success: #10b981;
+            --accent: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.15) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 100px rgba(99, 102, 241, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(21, 27, 46, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 28px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: -1px;
+        }
+
+        .stat-card.primary .stat-value { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-card.success .stat-value { 
+            background: linear-gradient(135deg, var(--success), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-card.warning .stat-value { 
+            background: linear-gradient(135deg, var(--warning), #fb923c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-card.danger .stat-value { 
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--border);
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .tab {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 16px 28px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .tab::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary-light);
+        }
+
+        .tab.active {
+            color: var(--primary);
+        }
+
+        .tab.active::before {
+            transform: scaleX(1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: rgba(21, 27, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 35px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select, textarea {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            background: rgba(10, 14, 26, 0.9);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--bg-hover) 0%, var(--border) 100%);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, var(--secondary-dark) 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-warning:hover {
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.5);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar input {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 24px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-main);
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1.2px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-hover);
+            transform: scale(1.01);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.active { 
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(20, 184, 166, 0.2));
+            color: var(--success); 
+            border: 1px solid var(--success);
+        }
+        .badge.expired { 
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+        .badge.pending { 
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2));
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+        .badge.completado { 
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+        .badge.nuevo { 
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.2));
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        .badge.recurrente { 
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(15, 118, 110, 0.2));
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+        .badge.vip { 
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.2));
+            color: #a855f7;
+            border: 1px solid #a855f7;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 18px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            animation: slideIn 0.4s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .alert-success { 
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
+        }
+        .alert-warning { 
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--warning);
+        }
+        .alert-danger { 
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--danger);
+        }
+        .alert-info { 
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
+        }
+
+        .alerts-container {
+            margin-bottom: 24px;
+        }
+
+        .alert-item {
+            background: var(--bg-card);
+            padding: 18px;
+            border-radius: 12px;
+            border-left: 4px solid var(--warning);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .alert-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .chart-container {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .chart-label {
+            width: 160px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .chart-bar-fill {
+            height: 36px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            padding: 35px;
+            border-radius: 20px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.4s ease;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .close-modal {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 24px;
+            opacity: 0.4;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            padding: 10px 20px;
+            border-radius: 24px;
+            border: 2px solid var(--border);
+            background: var(--bg-main);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .chip:hover, .chip.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-wrap: nowrap;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Sistema de Gestión</h1>
+            <p>Control total de tus suscripciones y clientes</p>
+        </header>
+
+        <!-- Estadísticas Principales -->
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="stat-label">Total Clientes</div>
+                <div class="stat-value" id="totalClientes">0</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-label">Suscripciones Activas</div>
+                <div class="stat-value" id="suscripcionesActivas">0</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-label">Por Renovar (7 días)</div>
+                <div class="stat-value" id="porRenovar">0</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-label">Ganancias del Mes</div>
+                <div class="stat-value" id="gananciasMes">$0</div>
+            </div>
+        </div>
+
+        <!-- Alertas de Renovación -->
+        <div id="alertasRenovacion"></div>
+
+        <!-- Pestañas de Navegación -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('clientes')">👥 Clientes</button>
+            <button class="tab" onclick="switchTab('nuevo')">➕ Nuevo Cliente</button>
+            <button class="tab" onclick="switchTab('caidas')">⚠️ Reporte de Caídas</button>
+            <button class="tab" onclick="switchTab('reportes')">📈 Reportes</button>
+            <button class="tab" onclick="switchTab('configuracion')">⚙️ Configuración</button>
+        </div>
+
+        <!-- Tab: Clientes -->
+        <div id="clientes" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Gestión de Clientes</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="exportarDatos()">📥 Exportar</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📤 Importar</button>
+                        <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importarDatos(event)">
+                    </div>
+                </div>
+
+                <!-- Búsqueda y Filtros -->
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre, email, teléfono..." oninput="filtrarClientes()">
+                    <select id="filterProducto" onchange="filtrarClientes()">
+                        <option value="">Todos los productos</option>
+                        <option value="streaming">Streaming</option>
+                        <option value="canva">Canva Pro</option>
+                        <option value="cinepolis">Cinépolis</option>
+                    </select>
+                    <select id="filterEstado" onchange="filtrarClientes()">
+                        <option value="">Todos los estados</option>
+                        <option value="activo">Activos</option>
+                        <option value="vencido">Vencidos</option>
+                        <option value="cancelado">Cancelados</option>
+                    </select>
+                </div>
+
+                <!-- Filtros por Tipo de Cliente -->
+                <div class="filter-chips">
+                    <div class="chip active" data-tipo="todos" onclick="filtrarPorTipo(this, 'todos')">Todos</div>
+                    <div class="chip" data-tipo="nuevo" onclick="filtrarPorTipo(this, 'nuevo')">Nuevos</div>
+                    <div class="chip" data-tipo="recurrente" onclick="filtrarPorTipo(this, 'recurrente')">Recurrentes</div>
+                    <div class="chip" data-tipo="vip" onclick="filtrarPorTipo(this, 'vip')">VIP</div>
+                </div>
+
+                <!-- Tabla de Clientes -->
+                <div style="overflow-x: auto;">
+                    <table id="tablaClientes">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Producto</th>
+                                <th>Inicio</th>
+                                <th>Renovación</th>
+                                <th>Estado</th>
+                                <th>Tipo</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" class="empty-state">
+                                    <div class="empty-state-icon">📭</div>
+                                    <p>No hay clientes registrados. ¡Agrega tu primer cliente!</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Nuevo Cliente -->
+        <div id="nuevo" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">➕ Registrar Nuevo Cliente</h2>
+                <form id="formCliente" onsubmit="guardarCliente(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre Completo *</label>
+                            <input type="text" id="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="email">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono *</label>
+                            <input type="tel" id="telefono" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Producto *</label>
+                            <select id="producto" required onchange="cambiarTipoProducto()">
+                                <option value="">Seleccionar...</option>
+                                <option value="streaming">Cuenta Streaming</option>
+                                <option value="canva">Canva Pro</option>
+                                <option value="cinepolis">Cinépolis 50%</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Campos para Suscripciones (Streaming y Canva) -->
+                    <div id="camposSuscripcion" style="display: none;">
+                        <h3 style="margin: 20px 0 15px 0; color: var(--primary); font-size: 1.1rem;">📅 Información de Suscripción</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Fecha de Inicio *</label>
+                                <input type="date" id="fechaInicio" onchange="calcularRenovacion()">
+                            </div>
+                            <div class="form-group">
+                                <label>Duración (meses) *</label>
+                                <input type="number" id="duracion" value="1" min="1" onchange="calcularRenovacion()">
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de Renovación</label>
+                                <input type="date" id="fechaRenovacion" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campos para Cinépolis (Venta única) -->
+                    <div id="camposCinepolis" style="display: none;">
+                        <h3 style="margin: 20px 0 15px 0; color: var(--warning); font-size: 1.1rem;">🎬 Información de Venta</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Fecha de Venta *</label>
+                                <input type="date" id="fechaVentaCine">
+                            </div>
+                            <div class="form-group">
+                                <label>Cantidad de Boletos Vendidos *</label>
+                                <input type="number" id="cantidadBoletos" value="1" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Alimentos Vendidos</label>
+                            <textarea id="alimentosVendidos" placeholder="Ej: 2 palomitas grandes, 1 refresco mediano, 3 nachos..."></textarea>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Costo del Proveedor (Informativo)</label>
+                                <input type="number" id="costoProveedorCine" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Costo al Cliente (Informativo)</label>
+                                <input type="number" id="costoCliente" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Comisión Propia (Mi Ganancia) *</label>
+                                <input type="number" id="comisionPropia" step="0.01" style="border: 2px solid var(--success);" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campos comunes para todos los productos -->
+                    <h3 style="margin: 20px 0 15px 0; color: var(--secondary); font-size: 1.1rem;">💰 Información de Pago</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Precio de Venta *</label>
+                            <input type="number" id="precioVenta" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Costo del Proveedor</label>
+                            <input type="number" id="costoProveedor" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Método de Pago</label>
+                            <select id="metodoPago">
+                                <option value="transferencia">Transferencia</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Cliente</label>
+                            <select id="tipoCliente">
+                                <option value="nuevo">Nuevo</option>
+                                <option value="recurrente">Recurrente</option>
+                                <option value="vip">VIP</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Fuente de Adquisición</label>
+                            <select id="fuenteAdquisicion">
+                                <option value="referido">Referido</option>
+                                <option value="redes">Redes Sociales</option>
+                                <option value="conocido">Conocido</option>
+                                <option value="publicidad">Publicidad</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notas / Observaciones</label>
+                        <textarea id="notas" placeholder="Preferencias del cliente, detalles especiales, etc."></textarea>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn">💾 Guardar Cliente</button>
+                        <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">🔄 Limpiar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab: Reporte de Caídas -->
+        <div id="caidas" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">⚠️ Reporte de Caídas</h2>
+                    <button class="btn" onclick="abrirModalNuevaCaida()">➕ Reportar Nueva Caída</button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="search-bar">
+                    <input type="text" id="searchCaidas" placeholder="🔍 Buscar por cliente o descripción..." oninput="filtrarCaidas()">
+                    <select id="filterEstadoCaida" onchange="filtrarCaidas()">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en_proceso">En Proceso</option>
+                        <option value="resuelto">Resuelto</option>
+                    </select>
+                    <select id="filterPrioridad" onchange="filtrarCaidas()">
+                        <option value="">Todas las prioridades</option>
+                        <option value="alta">Alta</option>
+                        <option value="media">Media</option>
+                        <option value="baja">Baja</option>
+                    </select>
+                </div>
+
+                <!-- Estadísticas de caídas -->
+                <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div class="stat-card danger">
+                        <div class="stat-label">Total Reportes</div>
+                        <div class="stat-value" id="totalCaidas">0</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">Pendientes</div>
+                        <div class="stat-value" id="caidasPendientes">0</div>
+                    </div>
+                    <div class="stat-card primary">
+                        <div class="stat-label">En Proceso</div>
+                        <div class="stat-value" id="caidasEnProceso">0</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-label">Resueltos</div>
+                        <div class="stat-value" id="caidasResueltos">0</div>
+                    </div>
+                </div>
+
+                <!-- Tabla de caídas -->
+                <div style="overflow-x: auto;">
+                    <table id="tablaCaidas">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Producto</th>
+                                <th>Descripción</th>
+                                <th>Prioridad</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="empty-state">
+                                    <div class="empty-state-icon">✅</div>
+                                    <p>No hay reportes de caídas. ¡Todo funciona correctamente!</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Reportes -->
+        <div id="reportes" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">📈 Análisis y Reportes</h2>
+                
+                <!-- Resumen Financiero -->
+                <div class="stats-grid" style="margin-top: 20px;">
+                    <div class="stat-card success">
+                        <div class="stat-label">Ingresos Totales</div>
+                        <div class="stat-value" id="ingresosTotales">$0</div>
+                    </div>
+                    <div class="stat-card primary">
+                        <div class="stat-label">Costos Totales</div>
+                        <div class="stat-value" id="costosTotales">$0</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">Ganancia Neta</div>
+                        <div class="stat-value" id="gananciaNeta">$0</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-label">Margen de Ganancia</div>
+                        <div class="stat-value" id="margenGanancia">0%</div>
+                    </div>
+                </div>
+
+                <!-- Ventas por Producto -->
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 20px; font-family: 'Space Mono', monospace;">Ventas por Producto</h3>
+                    <div id="chartProductos"></div>
+                </div>
+
+                <!-- Tasa de Renovación -->
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 20px; font-family: 'Space Mono', monospace;">Métricas de Clientes</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Tasa de Renovación</div>
+                            <div class="stat-value" id="tasaRenovacion">0%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Cliente Más Antiguo</div>
+                            <div class="stat-value" id="clienteAntiguo" style="font-size: 1.2rem;">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Producto Más Vendido</div>
+                            <div class="stat-value" id="productoPopular" style="font-size: 1.2rem;">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Mejor Mes de Ventas</div>
+                            <div class="stat-value" id="mejorMes" style="font-size: 1.2rem;">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Configuración -->
+        <div id="configuracion" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">⚙️ Configuración del Sistema</h2>
+                
+                <div style="margin-top: 20px; padding: 20px; background: rgba(37, 99, 235, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
+                    <h4>ℹ️ Información</h4>
+                    <p style="color: var(--text-secondary); margin-top: 10px;">
+                        Todos los precios se asignan manualmente al registrar cada cliente. No hay precios predeterminados en el sistema.
+                    </p>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px;">Gestión de Datos</h3>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="exportarDatos()">📥 Exportar Todos los Datos</button>
+                        <button class="btn btn-warning" onclick="respaldarDatos()">💾 Crear Respaldo</button>
+                        <button class="btn btn-danger" onclick="confirmarBorrarDatos()">🗑️ Borrar Todos los Datos</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; padding: 20px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border-left: 4px solid var(--warning);">
+                    <h4>⚠️ Información Importante</h4>
+                    <p style="color: var(--text-secondary); margin-top: 10px;">
+                        Los datos se almacenan localmente en tu navegador. Recomendamos hacer respaldos periódicos 
+                        exportando los datos. Si borras los datos del navegador, perderás toda la información.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edición/Detalles -->
+    <div id="modalCliente" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" style="font-family: 'Space Mono', monospace;">Detalles del Cliente</h2>
+                <button class="close-modal" onclick="cerrarModal()">✕</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Nueva Caída -->
+    <div id="modalCaida" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="font-family: 'Space Mono', monospace;">⚠️ Reportar Nueva Caída</h2>
+                <button class="close-modal" onclick="cerrarModalCaida()">✕</button>
+            </div>
+            <form id="formCaida" onsubmit="guardarCaida(event)">
+                <div class="form-group">
+                    <label>Cliente Afectado *</label>
+                    <select id="clienteCaida" required>
+                        <option value="">Seleccionar cliente...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción del Problema *</label>
+                    <textarea id="descripcionCaida" required placeholder="Describe el problema con la cuenta..."></textarea>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Prioridad *</label>
+                        <select id="prioridadCaida" required>
+                            <option value="baja">Baja</option>
+                            <option value="media" selected>Media</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="estadoCaida">
+                            <option value="pendiente" selected>Pendiente</option>
+                            <option value="en_proceso">En Proceso</option>
+                            <option value="resuelto">Resuelto</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notas Adicionales</label>
+                    <textarea id="notasCaida" placeholder="Información adicional sobre el problema..."></textarea>
+                </div>
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button type="submit" class="btn">💾 Guardar Reporte</button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCaida()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+        let config = JSON.parse(localStorage.getItem('config')) || {};
+        let caidas = JSON.parse(localStorage.getItem('caidas')) || [];
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarConfiguracion();
+            actualizarEstadisticas();
+            renderizarClientes();
+            verificarAlertas();
+            actualizarEstadisticasCaidas();
+            renderizarCaidas();
+        });
+
+        // Funciones de Navegación
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            if (tabName === 'reportes') {
+                generarReportes();
+            }
+        }
+
+        // Guardar Cliente
+        function guardarCliente(event) {
+            event.preventDefault();
+
+            const producto = document.getElementById('producto').value;
+            
+            // Datos base comunes para todos los productos
+            const cliente = {
+                id: Date.now(),
+                nombre: document.getElementById('nombre').value,
+                email: document.getElementById('email').value,
+                telefono: document.getElementById('telefono').value,
+                producto: producto,
+                metodoPago: document.getElementById('metodoPago').value,
+                tipoCliente: document.getElementById('tipoCliente').value,
+                fuenteAdquisicion: document.getElementById('fuenteAdquisicion').value,
+                notas: document.getElementById('notas').value,
+                estado: 'activo',
+                fechaCreacion: new Date().toISOString()
+            };
+
+            // Agregar datos específicos según el tipo de producto
+            if (producto === 'streaming' || producto === 'canva') {
+                // Para suscripciones
+                cliente.fechaInicio = document.getElementById('fechaInicio').value;
+                cliente.duracion = parseInt(document.getElementById('duracion').value);
+                cliente.fechaRenovacion = document.getElementById('fechaRenovacion').value;
+                cliente.precioVenta = parseFloat(document.getElementById('precioVenta').value);
+                cliente.costoProveedor = parseFloat(document.getElementById('costoProveedor').value) || 0;
+                cliente.tipoProducto = 'suscripcion';
+                
+                // Historial con el monto real de venta
+                cliente.historial = [{
+                    fecha: new Date().toISOString(),
+                    accion: 'Cliente registrado',
+                    monto: cliente.precioVenta
+                }];
+                
+            } else if (producto === 'cinepolis') {
+                // Para Cinépolis (venta única)
+                cliente.fechaVenta = document.getElementById('fechaVentaCine').value;
+                cliente.cantidadBoletos = parseInt(document.getElementById('cantidadBoletos').value);
+                cliente.alimentosVendidos = document.getElementById('alimentosVendidos').value;
+                cliente.costoProveedorCine = parseFloat(document.getElementById('costoProveedorCine').value) || 0;
+                cliente.costoCliente = parseFloat(document.getElementById('costoCliente').value) || 0;
+                cliente.comisionPropia = parseFloat(document.getElementById('comisionPropia').value);
+                
+                // Para Cinépolis, la comisión propia ES la ganancia real
+                cliente.precioVenta = cliente.comisionPropia; // La comisión es lo que realmente ganas
+                cliente.costoProveedor = 0; // No hay costo, porque la comisión ya es ganancia neta
+                
+                cliente.tipoProducto = 'venta_unica';
+                cliente.estado = 'completado';
+                
+                // Historial con la comisión propia
+                cliente.historial = [{
+                    fecha: new Date().toISOString(),
+                    accion: 'Venta registrada',
+                    monto: cliente.comisionPropia
+                }];
+            }
+
+            clientes.push(cliente);
+            guardarEnLocalStorage();
+            mostrarAlerta('Cliente registrado exitosamente', 'success');
+            limpiarFormulario();
+            switchTab('clientes');
+            actualizarEstadisticas();
+            renderizarClientes();
+        }
+
+        // Calcular fecha de renovación
+        function calcularRenovacion() {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const duracion = parseInt(document.getElementById('duracion').value) || 1;
+            
+            if (fechaInicio) {
+                const inicio = new Date(fechaInicio);
+                const renovacion = new Date(inicio);
+                renovacion.setMonth(renovacion.getMonth() + duracion);
+                
+                document.getElementById('fechaRenovacion').value = renovacion.toISOString().split('T')[0];
+            }
+        }
+
+        // Cambiar tipo de producto (suscripción vs venta única)
+        function cambiarTipoProducto() {
+            const producto = document.getElementById('producto').value;
+            const camposSuscripcion = document.getElementById('camposSuscripcion');
+            const camposCinepolis = document.getElementById('camposCinepolis');
+            
+            // Ocultar todos los campos primero
+            camposSuscripcion.style.display = 'none';
+            camposCinepolis.style.display = 'none';
+            
+            // Limpiar el precio de venta
+            document.getElementById('precioVenta').value = '';
+            document.getElementById('costoProveedor').value = '0';
+            
+            if (producto === 'streaming' || producto === 'canva') {
+                // Mostrar campos de suscripción
+                camposSuscripcion.style.display = 'block';
+                document.getElementById('fechaInicio').required = true;
+                document.getElementById('duracion').required = true;
+                document.getElementById('fechaVentaCine').required = false;
+                document.getElementById('cantidadBoletos').required = false;
+                document.getElementById('comisionPropia').required = false;
+                
+                // Establecer fecha de inicio a hoy
+                document.getElementById('fechaInicio').valueAsDate = new Date();
+                calcularRenovacion();
+                
+            } else if (producto === 'cinepolis') {
+                // Mostrar campos de Cinépolis
+                camposCinepolis.style.display = 'block';
+                document.getElementById('fechaInicio').required = false;
+                document.getElementById('duracion').required = false;
+                document.getElementById('fechaVentaCine').required = true;
+                document.getElementById('cantidadBoletos').required = true;
+                document.getElementById('comisionPropia').required = true;
+                
+                // Establecer fecha de venta a hoy
+                document.getElementById('fechaVentaCine').valueAsDate = new Date();
+            }
+        }
+
+        // Renderizar tabla de clientes
+        function renderizarClientes(clientesFiltrados = null) {
+            const tbody = document.querySelector('#tablaClientes tbody');
+            const clientesAmostrar = clientesFiltrados || clientes;
+
+            if (clientesAmostrar.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>No se encontraron clientes</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = clientesAmostrar.map(cliente => {
+                const estadoBadge = obtenerEstadoCliente(cliente);
+                const productoNombre = {
+                    streaming: 'Streaming',
+                    canva: 'Canva Pro',
+                    cinepolis: 'Cinépolis'
+                }[cliente.producto] || cliente.producto;
+
+                // Para Cinépolis, la ganancia es la comisión propia
+                // Para suscripciones, es precioVenta - costoProveedor
+                let precioMostrar, gananciaMostrar;
+                
+                if (cliente.tipoProducto === 'venta_unica' || cliente.producto === 'cinepolis') {
+                    precioMostrar = cliente.comisionPropia || cliente.precioVenta || 0;
+                    gananciaMostrar = precioMostrar; // La comisión ya ES la ganancia
+                } else {
+                    precioMostrar = cliente.precioVenta || 0;
+                    gananciaMostrar = (cliente.precioVenta || 0) - (cliente.costoProveedor || 0);
+                }
+
+                // Determinar qué fechas mostrar según el tipo de producto
+                let fechaInfo = '';
+                let renovacionInfo = '';
+                
+                if (cliente.tipoProducto === 'suscripcion' || cliente.producto === 'streaming' || cliente.producto === 'canva') {
+                    fechaInfo = formatearFecha(cliente.fechaInicio);
+                    renovacionInfo = formatearFecha(cliente.fechaRenovacion);
+                } else if (cliente.tipoProducto === 'venta_unica' || cliente.producto === 'cinepolis') {
+                    fechaInfo = formatearFecha(cliente.fechaVenta || cliente.fechaCreacion);
+                    renovacionInfo = `<span style="color: var(--text-secondary);">Venta única</span>`;
+                }
+
+                return `
+                    <tr>
+                        <td><strong>${cliente.nombre}</strong><br><small style="color: var(--text-secondary)">${cliente.telefono}</small></td>
+                        <td>${productoNombre}${cliente.cantidadBoletos ? `<br><small style="color: var(--text-secondary)">${cliente.cantidadBoletos} boleto(s)</small>` : ''}</td>
+                        <td>${fechaInfo}</td>
+                        <td>${renovacionInfo}</td>
+                        <td><span class="badge ${estadoBadge.clase}">${estadoBadge.texto}</span></td>
+                        <td><span class="badge ${cliente.tipoCliente}">${cliente.tipoCliente}</span></td>
+                        <td><strong>$${precioMostrar.toFixed(2)}</strong><br><small style="color: var(--success)">Ganancia: $${gananciaMostrar.toFixed(2)}</small></td>
+                        <td class="action-btns">
+                            <button class="action-btn" onclick="verDetalles(${cliente.id})" title="Ver detalles">👁️</button>
+                            <button class="action-btn" onclick="editarCliente(${cliente.id})" title="Editar">✏️</button>
+                            ${(cliente.tipoProducto === 'suscripcion' || cliente.producto === 'streaming' || cliente.producto === 'canva') ? 
+                                `<button class="action-btn" onclick="renovarSuscripcion(${cliente.id})" title="Renovar">🔄</button>` : ''}
+                            <button class="action-btn" onclick="eliminarCliente(${cliente.id})" title="Eliminar">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Obtener estado del cliente
+        function obtenerEstadoCliente(cliente) {
+            // Para ventas únicas de Cinépolis
+            if (cliente.tipoProducto === 'venta_unica' || (cliente.producto === 'cinepolis' && !cliente.fechaRenovacion)) {
+                return { clase: 'active', texto: 'Completado' };
+            }
+            
+            // Para suscripciones
+            const hoy = new Date();
+            const renovacion = new Date(cliente.fechaRenovacion);
+            
+            if (cliente.estado === 'cancelado') {
+                return { clase: 'expired', texto: 'Cancelado' };
+            }
+            
+            if (renovacion < hoy) {
+                return { clase: 'expired', texto: 'Vencido' };
+            }
+            
+            const diasParaRenovar = Math.ceil((renovacion - hoy) / (1000 * 60 * 60 * 24));
+            
+            if (diasParaRenovar <= 7) {
+                return { clase: 'pending', texto: `${diasParaRenovar}d restantes` };
+            }
+            
+            return { clase: 'active', texto: 'Activo' };
+        }
+
+        // Filtrar clientes
+        function filtrarClientes() {
+            const busqueda = document.getElementById('searchInput').value.toLowerCase();
+            const producto = document.getElementById('filterProducto').value;
+            const estado = document.getElementById('filterEstado').value;
+            const tipoActivo = document.querySelector('.chip.active')?.dataset.tipo || 'todos';
+
+            const clientesFiltrados = clientes.filter(cliente => {
+                const coincideBusqueda = cliente.nombre.toLowerCase().includes(busqueda) ||
+                                        cliente.email.toLowerCase().includes(busqueda) ||
+                                        cliente.telefono.includes(busqueda);
+                
+                const coincideProducto = !producto || cliente.producto === producto;
+                
+                const estadoCliente = obtenerEstadoCliente(cliente);
+                const coincideEstado = !estado || 
+                                      (estado === 'activo' && estadoCliente.clase === 'active') ||
+                                      (estado === 'vencido' && estadoCliente.clase === 'expired') ||
+                                      (estado === 'cancelado' && cliente.estado === 'cancelado');
+                
+                const coincideTipo = tipoActivo === 'todos' || cliente.tipoCliente === tipoActivo;
+
+                return coincideBusqueda && coincideProducto && coincideEstado && coincideTipo;
+            });
+
+            renderizarClientes(clientesFiltrados);
+        }
+
+        // Filtrar por tipo de cliente
+        function filtrarPorTipo(elemento, tipo) {
+            document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
+            elemento.classList.add('active');
+            filtrarClientes();
+        }
+
+        // Ver detalles del cliente
+        function verDetalles(id) {
+            const cliente = clientes.find(c => c.id === id);
+            if (!cliente) return;
+
+            const productoNombre = {
+                streaming: 'Cuenta Streaming',
+                canva: 'Canva Pro',
+                cinepolis: 'Cinépolis 50%'
+            }[cliente.producto] || cliente.producto;
+
+            const ganancia = cliente.precioVenta - cliente.costoProveedor;
+            const margen = ((ganancia / cliente.precioVenta) * 100).toFixed(1);
+            
+            const esSuscripcion = cliente.tipoProducto === 'suscripcion' || cliente.producto === 'streaming' || cliente.producto === 'canva';
+
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: var(--primary); margin-bottom: 10px;">${cliente.nombre}</h3>
+                    <p style="color: var(--text-secondary);">${cliente.email || 'Sin email'} • ${cliente.telefono}</p>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <div class="stat-label">Producto</div>
+                        <div class="stat-value" style="font-size: 1.2rem;">${productoNombre}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Estado</div>
+                        <div class="stat-value" style="font-size: 1.2rem;">
+                            <span class="badge ${obtenerEstadoCliente(cliente).clase}">${obtenerEstadoCliente(cliente).texto}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Tipo</div>
+                        <div class="stat-value" style="font-size: 1.2rem;">
+                            <span class="badge ${cliente.tipoCliente}">${cliente.tipoCliente}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${esSuscripcion ? `
+                <div style="background: var(--bg-main); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px;">📅 Información de Suscripción</h4>
+                    <p><strong>Fecha de inicio:</strong> ${formatearFecha(cliente.fechaInicio)}</p>
+                    <p><strong>Duración:</strong> ${cliente.duracion} mes(es)</p>
+                    <p><strong>Fecha de renovación:</strong> ${formatearFecha(cliente.fechaRenovacion)}</p>
+                    <p><strong>Método de pago:</strong> ${cliente.metodoPago}</p>
+                </div>
+                ` : `
+                <div style="background: var(--bg-main); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px;">🎬 Información de Venta</h4>
+                    <p><strong>Fecha de venta:</strong> ${formatearFecha(cliente.fechaVenta || cliente.fechaCreacion)}</p>
+                    <p><strong>Cantidad de boletos:</strong> ${cliente.cantidadBoletos || 1}</p>
+                    ${cliente.alimentosVendidos ? `<p><strong>Alimentos vendidos:</strong> ${cliente.alimentosVendidos}</p>` : ''}
+                    <p style="color: var(--text-secondary);"><strong>Costo del proveedor (informativo):</strong> $${(cliente.costoProveedorCine || 0).toFixed(2)}</p>
+                    <p style="color: var(--text-secondary);"><strong>Costo al cliente (informativo):</strong> $${(cliente.costoCliente || 0).toFixed(2)}</p>
+                    <p><strong>Comisión propia (mi ganancia):</strong> <span style="color: var(--success); font-size: 1.2rem; font-weight: 700;">$${(cliente.comisionPropia || cliente.precioVenta || 0).toFixed(2)}</span></p>
+                    <p><strong>Método de pago:</strong> ${cliente.metodoPago}</p>
+                </div>
+                `}
+
+                <div style="background: var(--bg-main); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px;">💰 Información Financiera</h4>
+                    ${esSuscripcion ? `
+                        <p><strong>Precio de venta:</strong> $${cliente.precioVenta.toFixed(2)}</p>
+                        <p><strong>Costo proveedor:</strong> $${cliente.costoProveedor.toFixed(2)}</p>
+                        <p><strong>Ganancia neta:</strong> <span style="color: var(--success)">$${ganancia.toFixed(2)}</span></p>
+                        <p><strong>Margen:</strong> ${margen}%</p>
+                    ` : `
+                        <p><strong>Comisión propia (ganancia):</strong> <span style="color: var(--success); font-size: 1.3rem; font-weight: 700;">$${(cliente.comisionPropia || cliente.precioVenta || 0).toFixed(2)}</span></p>
+                    `}
+                </div>
+
+                <div style="background: var(--bg-main); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px;">📊 Información Adicional</h4>
+                    <p><strong>Fuente de adquisición:</strong> ${cliente.fuenteAdquisicion}</p>
+                    <p><strong>Fecha de registro:</strong> ${formatearFecha(cliente.fechaCreacion)}</p>
+                    ${cliente.notas ? `<p><strong>Notas:</strong> ${cliente.notas}</p>` : ''}
+                </div>
+
+                ${cliente.historial && cliente.historial.length > 0 ? `
+                    <div style="background: var(--bg-main); padding: 20px; border-radius: 8px;">
+                        <h4 style="margin-bottom: 15px;">📜 Historial</h4>
+                        ${cliente.historial.map(h => `
+                            <p style="margin-bottom: 8px;">
+                                <small style="color: var(--text-secondary)">${formatearFecha(h.fecha)}</small> - 
+                                ${h.accion} 
+                                ${h.monto ? `<strong>$${h.monto.toFixed(2)}</strong>` : ''}
+                            </p>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn" onclick="editarCliente(${cliente.id}); cerrarModal();">✏️ Editar</button>
+                    ${esSuscripcion ? `<button class="btn btn-success" onclick="renovarSuscripcion(${cliente.id}); cerrarModal();">🔄 Renovar</button>` : ''}
+                    <button class="btn btn-danger" onclick="eliminarCliente(${cliente.id}); cerrarModal();">🗑️ Eliminar</button>
+                </div>
+            `;
+
+            document.getElementById('modalCliente').classList.add('active');
+        }
+
+        // Editar cliente
+        function editarCliente(id) {
+            const cliente = clientes.find(c => c.id === id);
+            if (!cliente) return;
+
+            document.getElementById('nombre').value = cliente.nombre;
+            document.getElementById('email').value = cliente.email;
+            document.getElementById('telefono').value = cliente.telefono;
+            document.getElementById('producto').value = cliente.producto;
+            
+            // Cargar campos según el tipo de producto
+            cambiarTipoProducto();
+            
+            const esSuscripcion = cliente.tipoProducto === 'suscripcion' || cliente.producto === 'streaming' || cliente.producto === 'canva';
+            
+            if (esSuscripcion) {
+                document.getElementById('fechaInicio').value = cliente.fechaInicio;
+                document.getElementById('duracion').value = cliente.duracion;
+                document.getElementById('fechaRenovacion').value = cliente.fechaRenovacion;
+                document.getElementById('precioVenta').value = cliente.precioVenta;
+                document.getElementById('costoProveedor').value = cliente.costoProveedor;
+            } else {
+                document.getElementById('fechaVentaCine').value = cliente.fechaVenta || cliente.fechaCreacion?.split('T')[0];
+                document.getElementById('cantidadBoletos').value = cliente.cantidadBoletos || 1;
+                document.getElementById('alimentosVendidos').value = cliente.alimentosVendidos || '';
+                document.getElementById('costoProveedorCine').value = cliente.costoProveedorCine || 0;
+                document.getElementById('costoCliente').value = cliente.costoCliente || 0;
+                document.getElementById('comisionPropia').value = cliente.comisionPropia || cliente.precioVenta || 0;
+            }
+            
+            document.getElementById('metodoPago').value = cliente.metodoPago;
+            document.getElementById('tipoCliente').value = cliente.tipoCliente;
+            document.getElementById('fuenteAdquisicion').value = cliente.fuenteAdquisicion;
+            document.getElementById('notas').value = cliente.notas;
+
+            // Eliminar el cliente antiguo y preparar para guardar el editado
+            eliminarCliente(id, true);
+            switchTab('nuevo');
+        }
+
+        // Renovar suscripción
+        function renovarSuscripcion(id) {
+            const cliente = clientes.find(c => c.id === id);
+            if (!cliente) return;
+
+            const nuevaFechaInicio = cliente.fechaRenovacion;
+            const duracion = parseInt(prompt('¿Cuántos meses deseas renovar?', cliente.duracion)) || cliente.duracion;
+            const precio = parseFloat(prompt('Precio de la renovación:', cliente.precioVenta)) || cliente.precioVenta;
+
+            const inicio = new Date(nuevaFechaInicio);
+            const renovacion = new Date(inicio);
+            renovacion.setMonth(renovacion.getMonth() + duracion);
+
+            cliente.fechaInicio = nuevaFechaInicio;
+            cliente.fechaRenovacion = renovacion.toISOString().split('T')[0];
+            cliente.duracion = duracion;
+            cliente.estado = 'activo';
+            
+            cliente.historial.push({
+                fecha: new Date().toISOString(),
+                accion: 'Suscripción renovada',
+                monto: precio
+            });
+
+            guardarEnLocalStorage();
+            mostrarAlerta('Suscripción renovada exitosamente', 'success');
+            actualizarEstadisticas();
+            renderizarClientes();
+        }
+
+        // Eliminar cliente
+        function eliminarCliente(id, silencioso = false) {
+            if (!silencioso && !confirm('¿Estás seguro de eliminar este cliente?')) return;
+
+            clientes = clientes.filter(c => c.id !== id);
+            guardarEnLocalStorage();
+            
+            if (!silencioso) {
+                mostrarAlerta('Cliente eliminado', 'danger');
+                actualizarEstadisticas();
+                renderizarClientes();
+            }
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas() {
+            const hoy = new Date();
+            const totalClientes = clientes.length;
+            
+            // Solo contar suscripciones activas (no ventas únicas de Cinépolis)
+            const activos = clientes.filter(c => {
+                const esSuscripcion = c.tipoProducto === 'suscripcion' || c.producto === 'streaming' || c.producto === 'canva';
+                if (!esSuscripcion) return false;
+                
+                const renovacion = new Date(c.fechaRenovacion);
+                return renovacion >= hoy && c.estado !== 'cancelado';
+            }).length;
+
+            // Solo contar suscripciones por renovar
+            const porRenovar = clientes.filter(c => {
+                const esSuscripcion = c.tipoProducto === 'suscripcion' || c.producto === 'streaming' || c.producto === 'canva';
+                if (!esSuscripcion || !c.fechaRenovacion) return false;
+                
+                const renovacion = new Date(c.fechaRenovacion);
+                const diasRestantes = Math.ceil((renovacion - hoy) / (1000 * 60 * 60 * 24));
+                return diasRestantes >= 0 && diasRestantes <= 7 && c.estado !== 'cancelado';
+            }).length;
+
+            const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            const gananciasMes = clientes
+                .filter(c => new Date(c.fechaCreacion) >= inicioMes)
+                .reduce((sum, c) => sum + (c.precioVenta - c.costoProveedor), 0);
+
+            document.getElementById('totalClientes').textContent = totalClientes;
+            document.getElementById('suscripcionesActivas').textContent = activos;
+            document.getElementById('porRenovar').textContent = porRenovar;
+            document.getElementById('gananciasMes').textContent = `$${gananciasMes.toFixed(2)}`;
+        }
+
+        // Verificar alertas de renovación
+        function verificarAlertas() {
+            const hoy = new Date();
+            const alertasContainer = document.getElementById('alertasRenovacion');
+            
+            // Solo alertar para suscripciones, no para ventas únicas
+            const clientesPorRenovar = clientes.filter(c => {
+                const esSuscripcion = c.tipoProducto === 'suscripcion' || c.producto === 'streaming' || c.producto === 'canva';
+                if (!esSuscripcion || !c.fechaRenovacion) return false;
+                
+                const renovacion = new Date(c.fechaRenovacion);
+                const diasRestantes = Math.ceil((renovacion - hoy) / (1000 * 60 * 60 * 24));
+                return diasRestantes >= 0 && diasRestantes <= 7 && c.estado !== 'cancelado';
+            });
+
+            if (clientesPorRenovar.length === 0) {
+                alertasContainer.innerHTML = '';
+                return;
+            }
+
+            alertasContainer.innerHTML = `
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; color: var(--warning);">⚠️ Renovaciones Próximas</h3>
+                    <div class="alerts-container">
+                        ${clientesPorRenovar.map(cliente => {
+                            const renovacion = new Date(cliente.fechaRenovacion);
+                            const diasRestantes = Math.ceil((renovacion - hoy) / (1000 * 60 * 60 * 24));
+                            return `
+                                <div class="alert-item">
+                                    <div>
+                                        <strong>${cliente.nombre}</strong> - ${cliente.producto}
+                                        <br><small style="color: var(--text-secondary)">Vence en ${diasRestantes} día(s) - ${formatearFecha(cliente.fechaRenovacion)}</small>
+                                    </div>
+                                    <button class="btn btn-sm" onclick="renovarSuscripcion(${cliente.id})">Renovar</button>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Generar reportes
+        function generarReportes() {
+            const ingresosTotales = clientes.reduce((sum, c) => sum + c.precioVenta, 0);
+            const costosTotales = clientes.reduce((sum, c) => sum + c.costoProveedor, 0);
+            const gananciaNeta = ingresosTotales - costosTotales;
+            const margenGanancia = ingresosTotales > 0 ? ((gananciaNeta / ingresosTotales) * 100).toFixed(1) : 0;
+
+            document.getElementById('ingresosTotales').textContent = `$${ingresosTotales.toFixed(2)}`;
+            document.getElementById('costosTotales').textContent = `$${costosTotales.toFixed(2)}`;
+            document.getElementById('gananciaNeta').textContent = `$${gananciaNeta.toFixed(2)}`;
+            document.getElementById('margenGanancia').textContent = `${margenGanancia}%`;
+
+            // Ventas por producto
+            const ventasPorProducto = {
+                streaming: 0,
+                canva: 0,
+                cinepolis: 0
+            };
+
+            clientes.forEach(c => {
+                if (ventasPorProducto.hasOwnProperty(c.producto)) {
+                    ventasPorProducto[c.producto]++;
+                }
+            });
+
+            const maxVentas = Math.max(...Object.values(ventasPorProducto));
+            const chartProductos = document.getElementById('chartProductos');
+            
+            chartProductos.innerHTML = `
+                <div class="chart-bar">
+                    <div class="chart-label">Streaming</div>
+                    <div class="chart-bar-fill" style="width: ${(ventasPorProducto.streaming / maxVentas) * 100}%">
+                        ${ventasPorProducto.streaming} ventas
+                    </div>
+                </div>
+                <div class="chart-bar">
+                    <div class="chart-label">Canva Pro</div>
+                    <div class="chart-bar-fill" style="width: ${(ventasPorProducto.canva / maxVentas) * 100}%; background: linear-gradient(90deg, var(--secondary), #059669);">
+                        ${ventasPorProducto.canva} ventas
+                    </div>
+                </div>
+                <div class="chart-bar">
+                    <div class="chart-label">Cinépolis</div>
+                    <div class="chart-bar-fill" style="width: ${(ventasPorProducto.cinepolis / maxVentas) * 100}%; background: linear-gradient(90deg, var(--warning), #d97706);">
+                        ${ventasPorProducto.cinepolis} ventas
+                    </div>
+                </div>
+            `;
+
+            // Métricas adicionales
+            const clientesRenovados = clientes.filter(c => c.historial && c.historial.length > 1).length;
+            const tasaRenovacion = clientes.length > 0 ? ((clientesRenovados / clientes.length) * 100).toFixed(1) : 0;
+            document.getElementById('tasaRenovacion').textContent = `${tasaRenovacion}%`;
+
+            // Cliente más antiguo
+            if (clientes.length > 0) {
+                const clienteAntiguo = clientes.reduce((oldest, c) => {
+                    return new Date(c.fechaCreacion) < new Date(oldest.fechaCreacion) ? c : oldest;
+                });
+                document.getElementById('clienteAntiguo').textContent = clienteAntiguo.nombre;
+            }
+
+            // Producto más vendido
+            const productoPopular = Object.keys(ventasPorProducto).reduce((a, b) => 
+                ventasPorProducto[a] > ventasPorProducto[b] ? a : b
+            );
+            const nombresProductos = { streaming: 'Streaming', canva: 'Canva Pro', cinepolis: 'Cinépolis' };
+            document.getElementById('productoPopular').textContent = nombresProductos[productoPopular] || '-';
+
+            // Mejor mes
+            const ventasPorMes = {};
+            clientes.forEach(c => {
+                const fecha = new Date(c.fechaCreacion);
+                const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+                ventasPorMes[mes] = (ventasPorMes[mes] || 0) + 1;
+            });
+
+            if (Object.keys(ventasPorMes).length > 0) {
+                const mejorMes = Object.keys(ventasPorMes).reduce((a, b) => ventasPorMes[a] > ventasPorMes[b] ? a : b);
+                const [año, mes] = mejorMes.split('-');
+                const nombreMes = new Date(año, mes - 1).toLocaleString('es', { month: 'long', year: 'numeric' });
+                document.getElementById('mejorMes').textContent = nombreMes;
+            }
+        }
+
+        // Exportar datos
+        function exportarDatos() {
+            const dataStr = JSON.stringify({ clientes, config, caidas }, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `respaldo-gestion-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            mostrarAlerta('Datos exportados exitosamente', 'success');
+        }
+
+        // Importar datos
+        function importarDatos(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.clientes && Array.isArray(data.clientes)) {
+                        if (confirm('¿Deseas reemplazar todos los datos actuales?')) {
+                            clientes = data.clientes;
+                            if (data.config) config = data.config;
+                            if (data.caidas) caidas = data.caidas;
+                            guardarEnLocalStorage();
+                            guardarCaidasEnLocalStorage();
+                            cargarConfiguracion();
+                            actualizarEstadisticas();
+                            renderizarClientes();
+                            actualizarEstadisticasCaidas();
+                            renderizarCaidas();
+                            mostrarAlerta('Datos importados exitosamente', 'success');
+                        }
+                    } else {
+                        mostrarAlerta('Archivo no válido', 'danger');
+                    }
+                } catch (error) {
+                    mostrarAlerta('Error al importar datos', 'danger');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Respaldar datos
+        function respaldarDatos() {
+            exportarDatos();
+        }
+
+        // Confirmar borrar datos
+        function confirmarBorrarDatos() {
+            if (confirm('⚠️ ADVERTENCIA: Esto eliminará TODOS los datos permanentemente. ¿Estás seguro?')) {
+                if (confirm('¿Realmente deseas continuar? Esta acción no se puede deshacer.')) {
+                    clientes = [];
+                    caidas = [];
+                    guardarEnLocalStorage();
+                    guardarCaidasEnLocalStorage();
+                    actualizarEstadisticas();
+                    renderizarClientes();
+                    actualizarEstadisticasCaidas();
+                    renderizarCaidas();
+                    mostrarAlerta('Todos los datos han sido eliminados', 'danger');
+                }
+            }
+        }
+
+        // Cargar configuración
+        function cargarConfiguracion() {
+            // Función mantenida para compatibilidad futura
+            // No hay precios base, todos los precios son manuales
+        }
+
+        // Guardar en localStorage
+        function guardarEnLocalStorage() {
+            localStorage.setItem('clientes', JSON.stringify(clientes));
+        }
+
+        // Limpiar formulario
+        function limpiarFormulario() {
+            document.getElementById('formCliente').reset();
+            document.getElementById('camposSuscripcion').style.display = 'none';
+            document.getElementById('camposCinepolis').style.display = 'none';
+        }
+
+        // Cerrar modal
+        function cerrarModal() {
+            document.getElementById('modalCliente').classList.remove('active');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modalCliente').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModal();
+            }
+        });
+
+        // Mostrar alerta
+        function mostrarAlerta(mensaje, tipo = 'info') {
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo}`;
+            alerta.innerHTML = `
+                <span>${mensaje}</span>
+            `;
+            
+            document.querySelector('.container').insertBefore(alerta, document.querySelector('header').nextSibling);
+            
+            setTimeout(() => {
+                alerta.remove();
+            }, 3000);
+        }
+
+        // ============================================
+        // FUNCIONES PARA REPORTE DE CAÍDAS
+        // ============================================
+
+        // Abrir modal de nueva caída
+        function abrirModalNuevaCaida() {
+            // Llenar el select de clientes
+            const selectCliente = document.getElementById('clienteCaida');
+            selectCliente.innerHTML = '<option value="">Seleccionar cliente...</option>';
+            
+            // Solo agregar clientes con suscripciones activas (no ventas únicas de Cinépolis)
+            const clientesSuscripcion = clientes.filter(c => 
+                c.tipoProducto === 'suscripcion' || c.producto === 'streaming' || c.producto === 'canva'
+            );
+            
+            clientesSuscripcion.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.id;
+                option.textContent = `${cliente.nombre} - ${cliente.producto.toUpperCase()}`;
+                selectCliente.appendChild(option);
+            });
+            
+            document.getElementById('formCaida').reset();
+            document.getElementById('modalCaida').classList.add('active');
+        }
+
+        // Cerrar modal de caída
+        function cerrarModalCaida() {
+            document.getElementById('modalCaida').classList.remove('active');
+        }
+
+        // Guardar nueva caída
+        function guardarCaida(event) {
+            event.preventDefault();
+            
+            const clienteId = parseInt(document.getElementById('clienteCaida').value);
+            const cliente = clientes.find(c => c.id === clienteId);
+            
+            const caida = {
+                id: Date.now(),
+                clienteId: clienteId,
+                clienteNombre: cliente.nombre,
+                producto: cliente.producto,
+                descripcion: document.getElementById('descripcionCaida').value,
+                prioridad: document.getElementById('prioridadCaida').value,
+                estado: document.getElementById('estadoCaida').value,
+                notas: document.getElementById('notasCaida').value,
+                fechaReporte: new Date().toISOString(),
+                fechaActualizacion: new Date().toISOString()
+            };
+            
+            caidas.push(caida);
+            guardarCaidasEnLocalStorage();
+            cerrarModalCaida();
+            mostrarAlerta('Reporte de caída registrado exitosamente', 'warning');
+            actualizarEstadisticasCaidas();
+            renderizarCaidas();
+        }
+
+        // Renderizar tabla de caídas
+        function renderizarCaidas(caidasFiltradas = null) {
+            const tbody = document.querySelector('#tablaCaidas tbody');
+            const caidasAmostrar = caidasFiltradas || caidas;
+
+            if (caidasAmostrar.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-state-icon">✅</div>
+                            <p>No hay reportes de caídas. ¡Todo funciona correctamente!</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = caidasAmostrar.sort((a, b) => new Date(b.fechaReporte) - new Date(a.fechaReporte)).map(caida => {
+                const prioridadColor = {
+                    alta: 'danger',
+                    media: 'warning',
+                    baja: 'primary'
+                }[caida.prioridad];
+
+                const estadoBadge = {
+                    pendiente: { clase: 'expired', texto: 'Pendiente' },
+                    en_proceso: { clase: 'pending', texto: 'En Proceso' },
+                    resuelto: { clase: 'active', texto: 'Resuelto' }
+                }[caida.estado];
+
+                return `
+                    <tr>
+                        <td>${formatearFecha(caida.fechaReporte)}</td>
+                        <td><strong>${caida.clienteNombre}</strong></td>
+                        <td><span class="badge primary">${caida.producto.toUpperCase()}</span></td>
+                        <td style="max-width: 300px;">${caida.descripcion}</td>
+                        <td><span class="badge ${prioridadColor}">${caida.prioridad.toUpperCase()}</span></td>
+                        <td><span class="badge ${estadoBadge.clase}">${estadoBadge.texto}</span></td>
+                        <td class="action-btns">
+                            <button class="action-btn" onclick="verDetallesCaida(${caida.id})" title="Ver detalles">👁️</button>
+                            <button class="action-btn" onclick="cambiarEstadoCaida(${caida.id})" title="Cambiar estado">🔄</button>
+                            <button class="action-btn" onclick="eliminarCaida(${caida.id})" title="Eliminar">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Ver detalles de caída
+        function verDetallesCaida(id) {
+            const caida = caidas.find(c => c.id === id);
+            if (!caida) return;
+
+            const prioridadColor = {
+                alta: 'danger',
+                media: 'warning',
+                baja: 'primary'
+            }[caida.prioridad];
+
+            const estadoBadge = {
+                pendiente: { clase: 'expired', texto: 'Pendiente' },
+                en_proceso: { clase: 'pending', texto: 'En Proceso' },
+                resuelto: { clase: 'active', texto: 'Resuelto' }
+            }[caida.estado];
+
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: var(--danger); margin-bottom: 10px;">⚠️ Reporte de Caída</h3>
+                    <p style="color: var(--text-secondary);">Reportado el ${formatearFecha(caida.fechaReporte)}</p>
+                </div>
+
+                <div style="background: var(--bg-main); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px;">👤 Cliente Afectado</h4>
+                    <p><strong>${caida.clienteNombre}</strong></p>
+                    <p>Producto: <span class="badge primary">${caida.producto.toUpperCase()}</span></p>
+                </div>
+
+                <div style="background: var(--bg-main); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px;">📝 Descripción del Problema</h4>
+                    <p>${caida.descripcion}</p>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <div class="stat-label">Prioridad</div>
+                        <div class="stat-value" style="font-size: 1.2rem;">
+                            <span class="badge ${prioridadColor}">${caida.prioridad.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Estado</div>
+                        <div class="stat-value" style="font-size: 1.2rem;">
+                            <span class="badge ${estadoBadge.clase}">${estadoBadge.texto}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${caida.notas ? `
+                    <div style="background: var(--bg-main); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 15px;">📋 Notas Adicionales</h4>
+                        <p>${caida.notas}</p>
+                    </div>
+                ` : ''}
+
+                <div style="background: var(--bg-main); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <p><strong>Última actualización:</strong> ${formatearFecha(caida.fechaActualizacion)}</p>
+                </div>
+
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn btn-warning" onclick="cambiarEstadoCaida(${caida.id}); cerrarModal();">🔄 Cambiar Estado</button>
+                    <button class="btn btn-danger" onclick="eliminarCaida(${caida.id}); cerrarModal();">🗑️ Eliminar</button>
+                </div>
+            `;
+
+            document.getElementById('modalCliente').classList.add('active');
+        }
+
+        // Cambiar estado de caída
+        function cambiarEstadoCaida(id) {
+            const caida = caidas.find(c => c.id === id);
+            if (!caida) return;
+
+            const estados = ['pendiente', 'en_proceso', 'resuelto'];
+            const estadoActualIndex = estados.indexOf(caida.estado);
+            const siguienteEstado = estados[(estadoActualIndex + 1) % estados.length];
+            
+            caida.estado = siguienteEstado;
+            caida.fechaActualizacion = new Date().toISOString();
+            
+            guardarCaidasEnLocalStorage();
+            actualizarEstadisticasCaidas();
+            renderizarCaidas();
+            mostrarAlerta(`Estado cambiado a: ${siguienteEstado.replace('_', ' ').toUpperCase()}`, 'info');
+        }
+
+        // Eliminar caída
+        function eliminarCaida(id) {
+            if (!confirm('¿Estás seguro de eliminar este reporte?')) return;
+            
+            caidas = caidas.filter(c => c.id !== id);
+            guardarCaidasEnLocalStorage();
+            actualizarEstadisticasCaidas();
+            renderizarCaidas();
+            mostrarAlerta('Reporte eliminado', 'danger');
+        }
+
+        // Filtrar caídas
+        function filtrarCaidas() {
+            const busqueda = document.getElementById('searchCaidas').value.toLowerCase();
+            const estado = document.getElementById('filterEstadoCaida').value;
+            const prioridad = document.getElementById('filterPrioridad').value;
+
+            const caidasFiltradas = caidas.filter(caida => {
+                const coincideBusqueda = caida.clienteNombre.toLowerCase().includes(busqueda) ||
+                                        caida.descripcion.toLowerCase().includes(busqueda);
+                
+                const coincideEstado = !estado || caida.estado === estado;
+                const coincidePrioridad = !prioridad || caida.prioridad === prioridad;
+
+                return coincideBusqueda && coincideEstado && coincidePrioridad;
+            });
+
+            renderizarCaidas(caidasFiltradas);
+        }
+
+        // Actualizar estadísticas de caídas
+        function actualizarEstadisticasCaidas() {
+            document.getElementById('totalCaidas').textContent = caidas.length;
+            document.getElementById('caidasPendientes').textContent = caidas.filter(c => c.estado === 'pendiente').length;
+            document.getElementById('caidasEnProceso').textContent = caidas.filter(c => c.estado === 'en_proceso').length;
+            document.getElementById('caidasResueltos').textContent = caidas.filter(c => c.estado === 'resuelto').length;
+        }
+
+        // Guardar caídas en localStorage
+        function guardarCaidasEnLocalStorage() {
+            localStorage.setItem('caidas', JSON.stringify(caidas));
+        }
+
+        // Cerrar modal de caída al hacer clic fuera
+        document.getElementById('modalCaida').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModalCaida();
+            }
+        });
+
+        // ============================================
+        // FIN FUNCIONES CAÍDAS
+        // ============================================
+
+        // Formatear fecha
+        function formatearFecha(fecha) {
+            if (!fecha) return '-';
+            const date = new Date(fecha);
+            return date.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+    </script>
+</body>
+</html>
