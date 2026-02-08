@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Login Panel</title>
+<style>
+body{
+  font-family: Arial;
+  background:#0a0e1a;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.box{
+  background:#151b2e;
+  padding:30px;
+  border-radius:10px;
+  width:300px;
+}
+
+input,button{
+  width:100%;
+  margin:10px 0;
+  padding:10px;
+}
+
+button{
+  background:#6366f1;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Panel de Administración</h2>
+
+  <input id="email" type="email" placeholder="Correo">
+  <input id="pass" type="password" placeholder="Contraseña">
+
+  <button onclick="login()">Entrar</button>
+
+  <p id="msg"></p>
+</div>
+
+
+<script type="module">
+
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
+import { getAuth, signInWithEmailAndPassword } from
+"https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCQz9xniOmKrjgNjVRpBn-admbqvRDQ2YA",
+  authDomain: "panel-administracion-ventas.firebaseapp.com",
+  projectId: "panel-administracion-ventas",
+  storageBucket: "panel-administracion-ventas.firebasestorage.app",
+  messagingSenderId: "379063339131",
+  appId: "1:379063339131:web:fa4583237cec4e8ca2fade"
+};
+
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+
+window.login = async function(){
+
+  const email = document.getElementById("email").value;
+  const pass  = document.getElementById("pass").value;
+  const msg   = document.getElementById("msg");
+
+  try{
+
+    await signInWithEmailAndPassword(auth,email,pass);
+
+    window.location.href="index.html";
+
+  }catch(e){
+
+    msg.textContent="Datos incorrectos";
+
+  }
+
+};
+
+</script>
+
+</body>
+</html>
+
