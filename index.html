@@ -1,22 +1,26 @@
 <script type="module">
 
-/* ============================
-   IMPORTS FIREBASE CDN
-============================ */
+/* ================= FIREBASE ================= */
 
 import { initializeApp } from
 "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 
-import { getFirestore, doc, getDoc, setDoc } from
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from
 "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-import { getAuth, onAuthStateChanged } from
+import {
+  getAuth,
+  onAuthStateChanged
+} from
 "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
 
-/* ============================
-   FIREBASE CONFIG
-============================ */
+/* ================= CONFIG ================= */
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQz9xniOmKrjgNjVRpBn-admbqvRDQ2YA",
@@ -24,14 +28,11 @@ const firebaseConfig = {
   projectId: "panel-administracion-ventas",
   storageBucket: "panel-administracion-ventas.firebasestorage.app",
   messagingSenderId: "379063339131",
-  appId: "1:379063339131:web:fa4583237cec4e8ca2fade",
-  measurementId: "G-DFFVZV3Z08"
+  appId: "1:379063339131:web:fa4583237cec4e8ca2fade"
 };
 
 
-/* ============================
-   INIT FIREBASE
-============================ */
+/* ================= INIT ================= */
 
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
@@ -40,96 +41,96 @@ const auth = getAuth(app);
 window.db = db;
 
 
-/* ============================
-   VARIABLES PRINCIPALES
-============================ */
+/* ================= DATOS ================= */
 
 let clientes = [];
 let caidas   = [];
-let config   = {};
 
 
-/* ============================
-   CARGAR DESDE FIREBASE
-============================ */
-
-async function cargarDesdeNube() {
-
-  try {
-
-    const snap = await getDoc(doc(db,"panel","datos"));
-
-    if (snap.exists()) {
-
-      clientes = snap.data().clientes || [];
-      caidas   = snap.data().caidas   || [];
-
-    }
-
-  } catch (e) {
-    console.error("Error Firebase:", e);
-  }
-
-}
-
-
-/* ============================
-   GUARDAR EN FIREBASE
-============================ */
-
-async function guardarEnNube() {
-
-  try {
-
-    await setDoc(doc(db,"panel","datos"), {
-
-      clientes,
-      caidas,
-      actualizado: new Date()
-
-    });
-
-  } catch (e) {
-    console.error("Error guardando:", e);
-  }
-
-}
-
-
-/* ============================
-   AUTENTICACIÓN
-============================ */
+/* ================= AUTH ================= */
 
 onAuthStateChanged(auth, user => {
 
   if (!user) {
-    alert("No autenticado. Activa Firebase Auth.");
+    window.location.href = "login.html";
     return;
   }
 
 });
 
 
-/* ============================
-   INICIALIZACIÓN
-============================ */
+/* ================= FIRESTORE ================= */
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function cargarDesdeNube(){
+
+  try{
+
+    const snap = await getDoc(doc(db,"panel","datos"));
+
+    if(snap.exists()){
+
+      clientes = snap.data().clientes || [];
+      caidas   = snap.data().caidas   || [];
+
+    }
+
+  }catch(e){
+    console.error("Error carga:",e);
+  }
+
+}
+
+
+async function guardarEnNube(){
+
+  try{
+
+    await setDoc(doc(db,"panel","datos"),{
+      clientes,
+      caidas,
+      actualizado: new Date()
+    });
+
+  }catch(e){
+    console.error("Error guardado:",e);
+  }
+
+}
+
+
+/* ================= INIT APP ================= */
+
+document.addEventListener("DOMContentLoaded", async ()=>{
 
   await cargarDesdeNube();
 
-  actualizarEstadisticas();
-  renderizarClientes();
-  verificarAlertas();
-  actualizarEstadisticasCaidas();
-  renderizarCaidas();
+  if(typeof actualizarEstadisticas==="function") actualizarEstadisticas();
+  if(typeof renderizarClientes==="function") renderizarClientes();
+  if(typeof verificarAlertas==="function") verificarAlertas();
+  if(typeof actualizarEstadisticasCaidas==="function") actualizarEstadisticasCaidas();
+  if(typeof renderizarCaidas==="function") renderizarCaidas();
 
 });
 
 
-/* ============================
-   SISTEMA CLIENTES
-============================ */
+/* ================= HOOK LOCAL → CLOUD ================= */
+
+/* Reemplaza tu guardado local */
+
+if(window.guardarEnLocalStorage){
+
+  const oldSave = window.guardarEnLocalStorage;
+
+  window.guardarEnLocalStorage = async function(){
+
+    await guardarEnNube();
+
+  };
+
+}
+
+
+/* ================= CLIENTES ================= */
 
 window.guardarCliente = async function (event) {
 
@@ -222,9 +223,7 @@ window.guardarCliente = async function (event) {
 };
 
 
-/* ============================
-   ELIMINAR CLIENTE
-============================ */
+/* ================= ELIMINAR ================= */
 
 window.eliminarCliente = async function (id, silencioso=false) {
 
@@ -240,9 +239,7 @@ window.eliminarCliente = async function (id, silencioso=false) {
 };
 
 
-/* ============================
-   FUNCIONES AUX
-============================ */
+/* ================= UTILS ================= */
 
 function calcularGanancia(c){
 
@@ -268,14 +265,6 @@ window.formatearFecha = function (f){
 }
 
 
-/* ============================
-   PLACEHOLDERS (TU CÓDIGO YA LOS TIENE)
-============================ */
-
-window.actualizarEstadisticas = function(){}
-window.renderizarClientes = function(){}
-window.verificarAlertas = function(){}
-window.actualizarEstadisticasCaidas = function(){}
-window.renderizarCaidas = function(){}
+console.log("Panel Firebase listo");
 
 </script>
